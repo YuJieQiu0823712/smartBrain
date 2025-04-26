@@ -1,4 +1,5 @@
 // import { Component } from 'react'
+// import React, { useState, useEffect } from 'react'
 import React, { useState } from 'react'
 
 import ParticlesBg from 'particles-bg'
@@ -33,12 +34,36 @@ const App = () => {
   //   }
   // };
 
-  const [input, setInpput] = useState('');
+
+  // useEffect(()=> {
+  //   fetch("http://localhost:3000/")
+  //   .then(response => response.json())
+  //   .then(console.log)
+  // }, []); // Empty dependency array ensures it runs only once, just like componentDidMount in a class.
+
+
+  const [input, setInput] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [box, setBox] = useState({});
   const [route, setRoute] = useState('signin');
   const [isSignedIn, setIsSignedIn] = useState(false); //
+  const [user,setUser] = useState({
+                                  id: '',
+                                  name: '',
+                                  email: '',
+                                  entries: 0,
+                                  joined: ''
+                                  });
 
+  const loadUser = (data) => {
+    setUser({
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      entries: data.entries,
+      joined: data.joined
+      })
+  }
 
   const USER_ID = 'r0823712';
   const PAT = '981d191d4235450e89c44735b9d79ea6';
@@ -53,7 +78,7 @@ const App = () => {
     const image = document.getElementById('inputImage');
     const width = Number(image.width);
     const height = Number(image.height);
-    console.log(width, height);
+    // console.log(width, height);
     return {
       leftCol: clarifaiFace.left_col * width,
       topRow: clarifaiFace.top_row * height,
@@ -72,7 +97,7 @@ const App = () => {
   const onInputChange = (event) => {
   // onInputChange = (event) => {
     // this.setState({input: event.target.value})
-    setInpput(event.target.value);
+    setInput(event.target.value);
   };
 
   const onButtonSubmit = () => {
@@ -80,7 +105,7 @@ const App = () => {
     // this.setState({imageUrl: this.state.input})
     setImageUrl(input); // not setImageUrl(imageUrl) because imageUrl is not defined yet
 
-    console.log('click')
+    // console.log('click')
 
     const raw = JSON.stringify({
       "user_app_id": {
@@ -100,7 +125,8 @@ const App = () => {
               }
           }
         }
-      ]
+      ],
+
       });
   
     const requestOptions = {
@@ -115,38 +141,76 @@ const App = () => {
     fetch(`https://api.clarifai.com/v2/users/${USER_ID}/apps/${APP_ID}/models/${MODEL_ID}/versions/${MODEL_VERSION_ID}/outputs`, requestOptions)
         .then(response => response.json())
         .then((data) => {
-          console.log('API response',data)
-          const fateLocation = calculateFaceLocation(data);
-          console.log('faceLocation', fateLocation);
-          displayFaceBox(fateLocation);
+          if(data) {
+            // console.log('API response',data)
+            const fateLocation = calculateFaceLocation(data);
+            // console.log('faceLocation', fateLocation);
+            displayFaceBox(fateLocation);
+
+            return fetch('http://localhost:3000/image', {
+              method:'put',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({
+                id: user.id
+              })
+            })
+            .then(responseI => responseI.json())
+            .then(count => {
+              // setUser({user, data:{entries: count}})
+                // We will just update the entries, it is not good
+                // Cause we need to sure the user still the same
+
+
+              // setUser(Object.assign(user, {entries:count}))
+              // Object.assign => Modifies the target object and returns it
+                // React's setUser() thinks the user object is the same because the reference didn’t change.
+                // React doesn’t know it needs to re-render immediately.
+
+
+              setUser(user => ({
+                ...user,
+                entries: count
+              }))
+              // ...user copies everything in the old user.
+              // Then { entries: count } overwrites the entries field.
+              // You create a new object → React sees the change → browser updates immediately
+                
+            })
+
+          }
+
+
+
         })
+        // .catch(error => console.log('error',error))
+
         // .then(data => displayFaceBox(calculateFaceLocation(data)))
-
         
-          // const regions = result.outputs[0].data.regions;
-
-          // regions.forEach(region => {
+        
+        // const regions = result.outputs[0].data.regions;
+        
+        // regions.forEach(region => {
           //     // Accessing and rounding the bounding box values
           //     const boundingBox = region.region_info.bounding_box;
           //     const topRow = boundingBox.top_row.toFixed(3);
           //     const leftCol = boundingBox.left_col.toFixed(3);
           //     const bottomRow = boundingBox.bottom_row.toFixed(3);
           //     const rightCol = boundingBox.right_col.toFixed(3);
-
+          
           //     region.data.concepts.forEach(concept => {
-          //         // Accessing and rounding the concept value
-          //         const name = concept.name;
-          //         const value = concept.value.toFixed(4);
-
-          //         console.log(`${name}: ${value} BBox: ${topRow}, ${leftCol}, ${bottomRow}, ${rightCol}`);
-                  
-          //     });
-          // });
-        // })
-
-
+            //         // Accessing and rounding the concept value
+            //         const name = concept.name;
+            //         const value = concept.value.toFixed(4);
+            
+            //         console.log(`${name}: ${value} BBox: ${topRow}, ${leftCol}, ${bottomRow}, ${rightCol}`);
+            
+            //     });
+            // });
+            // })
+            
+            
         .catch(error => console.log('error', error));
-
+            
   };
 
   const onRouteChange = (route) => {
@@ -173,15 +237,17 @@ const App = () => {
       {route === 'home'
       ? <div>
           <Logo />
-          <Rank />
+          <Rank name={user.name} entries={user.entries}/>
           {/* <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/> */}
           <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit}/>
           <FaceRecognition box={box} imageUrl={imageUrl}/>
         </div>
       : (
         route === 'signin'
-        ? <Signin onRouteChange={onRouteChange}/>
-        : <Register onRouteChange={onRouteChange}/>
+        ? <Signin loadUser={loadUser} onRouteChange={onRouteChange}/>
+        : <Register loadUser={loadUser} onRouteChange={onRouteChange}/>
+        // : <Register onRouteChange={onRouteChange}/>
+
 
 
       )
