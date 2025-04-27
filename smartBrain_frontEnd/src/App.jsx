@@ -49,12 +49,7 @@ const App = () => {
       })
   }
 
-  const USER_ID = 'r0823712';
-  const PAT = '981d191d4235450e89c44735b9d79ea6';
-  const APP_ID = 'face-detection';
-  const MODEL_ID = 'face-detection';
-  const MODEL_VERSION_ID = '6dc7e46bc9124c5c8824be4822abe105';
-
+  
    const calculateFaceLocation = (data) => {
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box; 
     const image = document.getElementById('inputImage');
@@ -81,78 +76,115 @@ const App = () => {
   const onButtonSubmit = () => {
     setImageUrl(input); // not setImageUrl(imageUrl) because imageUrl is not defined yet
 
-    const raw = JSON.stringify({
-      "user_app_id": {
-          "user_id": USER_ID,
-          "app_id": APP_ID
-      },
-      "model": {
-          "id": MODEL_ID,
-      },
-      "inputs": [
-        {
-          "data": {
-              "image": {
-                  "url": input,
-                  // "base64": IMAGE_BYTES_STRING
-              }
-          }
-        }
-      ],
+    // const raw = JSON.stringify({
+    //   "user_app_id": {
+    //       "user_id": USER_ID,
+    //       "app_id": APP_ID
+    //   },
+    //   "model": {
+    //       "id": MODEL_ID,
+    //   },
+    //   "inputs": [
+    //     {
+    //       "data": {
+    //           "image": {
+    //               "url": input,
+    //               // "base64": IMAGE_BYTES_STRING
+    //           }
+    //       }
+    //     }
+    //   ],
 
-      });
+    //   });
   
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Key ' + PAT
-      },
-      body: raw
-    };
+    // const requestOptions = {
+    //   method: 'POST',
+    //   headers: {
+    //       'Accept': 'application/json',
+    //       'Authorization': 'Key ' + PAT
+    //   },
+    //   body: raw
+    // };
   
-    fetch(`https://api.clarifai.com/v2/users/${USER_ID}/apps/${APP_ID}/models/${MODEL_ID}/versions/${MODEL_VERSION_ID}/outputs`, requestOptions)
-        .then(response => response.json())
-        .then((data) => {
-          if(data) {
-            const fateLocation = calculateFaceLocation(data);
-            displayFaceBox(fateLocation);
+    // fetch(`https://api.clarifai.com/v2/users/${USER_ID}/apps/${APP_ID}/models/${MODEL_ID}/versions/${MODEL_VERSION_ID}/outputs`, requestOptions)
+    //     .then(response => response.json())
+    //     .then((data) => {
+    //       if(data) {
+    //         const faceLocation = calculateFaceLocation(data);
+    //         displayFaceBox(faceLocation);
 
-            return fetch('http://localhost:3000/image', {
-              method:'put',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({
-                id: user.id
-              })
-            })
-            .then(responseI => responseI.json())
-            .then(count => {
-              // 1.
-              // setUser({user, data:{entries: count}})
-                // We will just update the entries, it is not good
-                // Because we need to sure the user is still the same
+    //         return fetch('http://localhost:3000/image', {
+    //           method:'put',
+    //           headers: {'Content-Type':'application/json'},
+    //           body: JSON.stringify({
+    //             id: user.id
+    //           })
+    //         })
+    //         .then(responseI => responseI.json())
+    //         .then(count => {
+    //           // 1.
+    //           // setUser({user, data:{entries: count}})
+    //             // We will just update the entries, it is not good
+    //             // Because we need to sure the user is still the same
 
-              // 2.
-              // setUser(Object.assign(user, {entries:count}))
-              // Object.assign => Modifies the target object and returns it
-                // React's setUser() thinks the user object is the same because the reference didn’t change.
-                // React doesn’t know it needs to re-render immediately.
+    //           // 2.
+    //           // setUser(Object.assign(user, {entries:count}))
+    //           // Object.assign => Modifies the target object and returns it
+    //             // React's setUser() thinks the user object is the same because the reference didn’t change.
+    //             // React doesn’t know it needs to re-render immediately.
 
-              // 3.
-              setUser(user => ({
-                ...user,
-                entries: count
-              }))
-              // ...user copies everything in the old user.
-              // Then { entries: count } overwrites the entries field.
-              // You create a new object → React sees the change → browser updates immediately
+    //           // 3.
+    //           setUser(user => ({
+    //             ...user,
+    //             entries: count
+    //           }))
+    //           // ...user copies everything in the old user.
+    //           // Then { entries: count } overwrites the entries field.
+    //           // You create a new object → React sees the change → browser updates immediately
                 
-            })
-            .catch(console.log) // error handling
-          }
+    //         })
+    //         .catch(console.log) // error handling
+    //       }
+    //     })
+    //     .catch(error => console.log('error', error));  
+
+    fetch('http://localhost:3000/imageurl', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        input: input // Send the image URL to the backend
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data) {
+        const faceLocation = calculateFaceLocation(data);
+        displayFaceBox(faceLocation);
+
+        return fetch('http://localhost:3000/image', {
+          method:'put',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            id: user.id
+          })
         })
-        .catch(error => console.log('error', error));  
+        .then(responseI => responseI.json())
+        .then(count => {
+          setUser( user => ({
+            ...user,
+            entries: count
+          }))
+        })
+        .catch(console.log)
+        
+      }
+    })
+    .catch(err => console.log('error', err))
+
   };
+
+
+
 
   const onRouteChange = (route) => {
     if (route === 'signout') {
