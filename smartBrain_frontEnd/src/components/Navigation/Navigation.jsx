@@ -19,6 +19,7 @@ const Navigation = ({ onRouteChange, isSignedIn }) => {
 } 
 
 export default Navigation
+
 // f3: Font size
 // link: Removes underline and gives pointer cursor (like <a>)
 // dim: Adds a slight dim effect on hover

@@ -1,6 +1,4 @@
 import React from 'react'
-
-// const Signin = ({ onRouteChange }) => {
 class Signin extends React.Component {
     constructor(props) {
         super(props)
@@ -19,7 +17,6 @@ class Signin extends React.Component {
     }
 
     onSubmitSignIn = () => {
-        // console.log(this.state)
         fetch('http://localhost:3000/signin', {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
@@ -30,7 +27,6 @@ class Signin extends React.Component {
         })
         .then(response => response.json())
         .then(user =>{
-            // if(data === 'success') {
             if(user.id) {
                 this.props.loadUser(user)
                 this.props.onRouteChange('home')
@@ -91,6 +87,5 @@ class Signin extends React.Component {
 }
 
 
-// } 
 
 export default Signin

@@ -20,6 +20,7 @@ const ImageLinkForm = ({onInputChange, onButtonSubmit}) => {
 }
 
 export default ImageLinkForm
+
 // f3: Font size
 // pa2: Padding (top, right, bottom, left) of 2 units
 // w-70: Width of 70%

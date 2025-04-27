@@ -1,7 +1,4 @@
-// import { Component } from 'react'
-// import React, { useState, useEffect } from 'react'
 import React, { useState } from 'react'
-
 import ParticlesBg from 'particles-bg'
 import './App.css'
 import Navigation from './components/Navigation/Navigation'
@@ -11,37 +8,9 @@ import Logo from './components/Logo/Logo'
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm'
 import FaceRecognition from './components/FaceRecognition/FaceRecognition'
 import Rank from './components/Rank/Rank'
-// import Clarifai from 'clarifai-nodejs-grpc'
-
-
-// const app = new Clarifai.App({
-//   apiKey: '2aa2b975753a40d49f06ef6accd55238'
-// })
-
-
 
 
 const App = () => {
-// class App extends Component {
-  // constructor() {
-  //   super();
-  //   this.state = {
-  //     input: '',
-  //     imageUrl: '',
-  //     box: {},
-  //     route: 'signin',
-  //     isSignedIn: 'false'
-  //   }
-  // };
-
-
-  // useEffect(()=> {
-  //   fetch("http://localhost:3000/")
-  //   .then(response => response.json())
-  //   .then(console.log)
-  // }, []); // Empty dependency array ensures it runs only once, just like componentDidMount in a class.
-
-
   const [input, setInput] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [box, setBox] = useState({});
@@ -54,6 +23,21 @@ const App = () => {
                                   entries: 0,
                                   joined: ''
                                   });
+
+  const initialState = () => {
+    setInput(''),
+    setImageUrl(''),
+    setBox({}),
+    setRoute('signin'),
+    setIsSignedIn(false),
+    setUser({
+      id: '',
+      name: '',
+      email: '',
+      entries: 0,
+      joined: ''
+    })
+  }
 
   const loadUser = (data) => {
     setUser({
@@ -70,15 +54,12 @@ const App = () => {
   const APP_ID = 'face-detection';
   const MODEL_ID = 'face-detection';
   const MODEL_VERSION_ID = '6dc7e46bc9124c5c8824be4822abe105';
-  // const IMAGE_URL = 'https://www.lumierebeautyclinic.com.au/wp-content/uploads/2023/05/what-makes-a-face-attractive-Lumiere-Beauty-Clinic-scaled.jpg';
 
- 
-  const calculateFaceLocation = (data) => {
+   const calculateFaceLocation = (data) => {
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box; 
     const image = document.getElementById('inputImage');
     const width = Number(image.width);
     const height = Number(image.height);
-    // console.log(width, height);
     return {
       leftCol: clarifaiFace.left_col * width,
       topRow: clarifaiFace.top_row * height,
@@ -88,24 +69,17 @@ const App = () => {
   }
 
   const displayFaceBox = (box) => {
-    // console.log(box)
-    // this.setState({box: box})
     setBox(box);
   }
 
 
   const onInputChange = (event) => {
-  // onInputChange = (event) => {
-    // this.setState({input: event.target.value})
     setInput(event.target.value);
   };
 
-  const onButtonSubmit = () => {
-  // onButtonSubmit = () => {
-    // this.setState({imageUrl: this.state.input})
-    setImageUrl(input); // not setImageUrl(imageUrl) because imageUrl is not defined yet
 
-    // console.log('click')
+  const onButtonSubmit = () => {
+    setImageUrl(input); // not setImageUrl(imageUrl) because imageUrl is not defined yet
 
     const raw = JSON.stringify({
       "user_app_id": {
@@ -114,7 +88,6 @@ const App = () => {
       },
       "model": {
           "id": MODEL_ID,
-          // "model_type_id": MODEL_TYPE_ID         
       },
       "inputs": [
         {
@@ -142,9 +115,7 @@ const App = () => {
         .then(response => response.json())
         .then((data) => {
           if(data) {
-            // console.log('API response',data)
             const fateLocation = calculateFaceLocation(data);
-            // console.log('faceLocation', fateLocation);
             displayFaceBox(fateLocation);
 
             return fetch('http://localhost:3000/image', {
@@ -156,17 +127,18 @@ const App = () => {
             })
             .then(responseI => responseI.json())
             .then(count => {
+              // 1.
               // setUser({user, data:{entries: count}})
                 // We will just update the entries, it is not good
-                // Cause we need to sure the user still the same
+                // Because we need to sure the user is still the same
 
-
+              // 2.
               // setUser(Object.assign(user, {entries:count}))
               // Object.assign => Modifies the target object and returns it
                 // React's setUser() thinks the user object is the same because the reference didn’t change.
                 // React doesn’t know it needs to re-render immediately.
 
-
+              // 3.
               setUser(user => ({
                 ...user,
                 entries: count
@@ -176,59 +148,20 @@ const App = () => {
               // You create a new object → React sees the change → browser updates immediately
                 
             })
-
+            .catch(console.log) // error handling
           }
-
-
-
         })
-        // .catch(error => console.log('error',error))
-
-        // .then(data => displayFaceBox(calculateFaceLocation(data)))
-        
-        
-        // const regions = result.outputs[0].data.regions;
-        
-        // regions.forEach(region => {
-          //     // Accessing and rounding the bounding box values
-          //     const boundingBox = region.region_info.bounding_box;
-          //     const topRow = boundingBox.top_row.toFixed(3);
-          //     const leftCol = boundingBox.left_col.toFixed(3);
-          //     const bottomRow = boundingBox.bottom_row.toFixed(3);
-          //     const rightCol = boundingBox.right_col.toFixed(3);
-          
-          //     region.data.concepts.forEach(concept => {
-            //         // Accessing and rounding the concept value
-            //         const name = concept.name;
-            //         const value = concept.value.toFixed(4);
-            
-            //         console.log(`${name}: ${value} BBox: ${topRow}, ${leftCol}, ${bottomRow}, ${rightCol}`);
-            
-            //     });
-            // });
-            // })
-            
-            
-        .catch(error => console.log('error', error));
-            
+        .catch(error => console.log('error', error));  
   };
 
   const onRouteChange = (route) => {
     if (route === 'signout') {
-      // this.setState({isSignedIn: false})
-      setRoute(setIsSignedIn(false))
+      initialState()
     } else if (route === 'home') {
-      // this.setState({isSignedIn: true})
       setRoute(setIsSignedIn(true))
-
     }
-    // this.setState({。。route: route});
     setRoute(route)
-
   }
-
-  // render() {
-  // const { isSignedIn, imageUrl, box, route} = this.state;
 
   return (
     <div className='App'>
@@ -238,7 +171,6 @@ const App = () => {
       ? <div>
           <Logo />
           <Rank name={user.name} entries={user.entries}/>
-          {/* <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/> */}
           <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit}/>
           <FaceRecognition box={box} imageUrl={imageUrl}/>
         </div>
@@ -246,20 +178,10 @@ const App = () => {
         route === 'signin'
         ? <Signin loadUser={loadUser} onRouteChange={onRouteChange}/>
         : <Register loadUser={loadUser} onRouteChange={onRouteChange}/>
-        // : <Register onRouteChange={onRouteChange}/>
-
-
-
       )
-      
       }
     </div>
-    
   )
-
-
-  // };
-
 }
 
 export default App
