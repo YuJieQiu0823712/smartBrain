@@ -76,7 +76,7 @@ const App = () => {
   const onButtonSubmit = () => {
     setImageUrl(input); // not setImageUrl(imageUrl) because imageUrl is not defined yet
 
-    fetch('http://localhost:3000/imageurl', {
+    fetch('https://smartbrain-frontend-qmrt.onrender.com/imageurl', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -89,7 +89,7 @@ const App = () => {
         const faceLocation = calculateFaceLocation(data);
         displayFaceBox(faceLocation);
 
-        return fetch('http://localhost:3000/image', {
+        return fetch('https://smartbrain-frontend-qmrt.onrender.com/image', {
           method:'put',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({
