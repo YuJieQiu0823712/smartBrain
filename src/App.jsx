@@ -15,7 +15,7 @@ const App = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [box, setBox] = useState({});
   const [route, setRoute] = useState('signin');
-  const [isSignedIn, setIsSignedIn] = useState(false); //
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [user,setUser] = useState({
                                   id: '',
                                   name: '',
@@ -110,8 +110,6 @@ const App = () => {
     .catch(err => console.log('error', err))
 
   };
-
-
 
 
   const onRouteChange = (route) => {
